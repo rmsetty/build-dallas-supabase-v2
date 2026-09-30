@@ -3,6 +3,7 @@ import type { CurrentUser, EventPage } from '../events/community-api';
 import { fetchCurrentUser } from '../events/community-api';
 import type { ForYouPage, Interests } from '../interests/interests-api';
 import type { StartupEvents } from './discover-api';
+import type { ProviderEvent } from '../events/provider-event';
 
 export type CatalogPage = StartupEvents & { next_cursor: string | null };
 export type Bootstrap = {
@@ -54,7 +55,7 @@ async function catalogPage(query = '', startup = false, limit = 100): Promise<Ca
   const incomplete = failedProviders.length > 0 || stale || (status ?? []).some(row => row.incomplete);
 
   return {
-    items: (rows ?? []).map(row => row.data),
+    items: (rows ?? []).map(row => row.data as unknown as ProviderEvent),
     queries: [],
     failedQueries: [],
     failedProviders,
