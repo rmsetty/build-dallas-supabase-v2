@@ -1,0 +1,56 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "build-dallas-api",
+	"main": "src/worker.py",
+	"compatibility_date": "2026-09-17",
+	"compatibility_flags": [
+		"python_workers"
+	],
+	"workers_dev": true,
+	"observability": {
+		"enabled": true
+	},
+	"vars": {
+		"APPWRITE_ENDPOINT": "https://nyc.cloud.appwrite.io/v1",
+		"APPWRITE_PROJECT_ID": "6aab47850012ef4d5dd2",
+		"PROFILE_CACHE_TTL": "60",
+		"EVENT_CACHE_TTL": "300",
+		"AUTH_CACHE_TTL": "60",
+		"APPWRITE_DATABASE_ID": "6aab47cd0031ba1570e2",
+		"APPWRITE_PROFILES_TABLE_ID": "profiles",
+		"APPWRITE_AVATARS_BUCKET_ID": "6aab6ee9001c14e2e84c",
+		"APPWRITE_RESUMES_BUCKET_ID": "6aab82cb000f96070a8e",
+		"FEED_REFRESH_HOURS": "24",
+		"EMBED_MODEL": "@cf/baai/bge-small-en-v1.5"
+	},
+	"triggers": {
+		"crons": [
+			"17 * * * *"
+		]
+	},
+	"ai": {
+		"binding": "AI"
+	},
+	"vectorize": [
+		{
+			"binding": "VECTORIZE",
+			"index_name": "build-dallas-events"
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "build-dallas-events",
+			"database_id": "0c1508a9-24bb-4b75-8433-c31d1a10b457",
+			"migrations_dir": "migrations"
+		}
+	],
+	"dev": {
+		"port": 8000
+	},
+	"python_modules": {
+		"exclude": [
+			"**/*.pyc"
+		]
+	}
+}
