@@ -1,6 +1,7 @@
 import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, processLock } from '@supabase/supabase-js';
+import type { Database } from '@/types/database';
 import 'react-native-url-polyfill/auto';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -10,7 +11,7 @@ if (!url || !publishableKey) {
   throw new Error('Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY');
 }
 
-export const supabase = createClient(url, publishableKey, {
+export const supabase = createClient<Database>(url, publishableKey, {
   auth: {
     ...(Platform.OS !== 'web' ? { storage: AsyncStorage } : {}),
     autoRefreshToken: true,
