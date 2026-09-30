@@ -118,7 +118,7 @@ export async function fetchLumaEvents(
   return { items, events: items, hasMore: false, nextCursor: null, total: items.length };
 }
 
-export async function fetchLumaEventById(eventId: string): Promise<NormalizedLumaEvent> {
+export async function fetchLumaEventById(eventId: string, _signal?: AbortSignal): Promise<NormalizedLumaEvent> {
   const { data, error } = await supabase
     .from('provider_events')
     .select('data')
