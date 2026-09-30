@@ -53,7 +53,7 @@ export async function fetchMeetupEvents(
   return { items, totalCount: items.length, pageInfo: { hasNextPage: false, endCursor: null } };
 }
 
-export async function fetchMeetupEventById(id: string): Promise<NormalizedMeetupEvent> {
+export async function fetchMeetupEventById(id: string, _signal?: AbortSignal): Promise<NormalizedMeetupEvent> {
   const remembered = records.get(id);
   if (remembered) return remembered;
   const { data, error } = await supabase
