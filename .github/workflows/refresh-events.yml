@@ -32,15 +32,8 @@ jobs:
         working-directory: backend
         run: uv run python -m app.scripts.supabase_import --input /tmp/build-dallas-events.json
 
-      - name: Re-embed changed events in small batches
-        run: |
-          for i in $(seq 1 50); do
-            echo "Embedding batch $i"
-            response=$(curl --fail-with-body --silent --show-error --request POST               "${SUPABASE_URL}/functions/v1/embed-provider-events"               --header "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}"               --header "Content-Type: application/json"               --data '{"limit":10}')
-            echo "$response"
-            scanned=$(echo "$response" | jq -r '.scanned // 0')
-            if [ "$scanned" -eq 0 ]; then
-              echo "No more events need embeddings."
-              break
-            fi
-          done
+      # Provider embeddings are intentionally disabled for now.
+      # The hosted Edge Runtime is returning WORKER_RESOURCE_LIMIT even for small
+      # gte-small batches. Event discovery still works without embeddings; only
+      # semantic "For You" ranking is deferred until we move embedding generation
+      # to a compute path that is reliable on this project.
