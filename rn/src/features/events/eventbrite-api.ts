@@ -123,7 +123,7 @@ export async function fetchEventbritePlace(_locationSlug: string): Promise<Event
   throw new Error('Place lookup is not required by the Supabase V2 event flow.');
 }
 
-export async function fetchEventbriteEventById(id: string): Promise<NormalizedEventbriteEvent> {
+export async function fetchEventbriteEventById(id: string, _signal?: AbortSignal): Promise<NormalizedEventbriteEvent> {
   const { data, error } = await supabase
     .from('provider_events')
     .select('data')
