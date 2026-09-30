@@ -9,12 +9,13 @@ Deno.serve(async (req: Request) => {
     );
 
     const body = await req.json().catch(() => ({}));
-    const limit = Math.min(Math.max(Number(body.limit ?? 50), 1), 100);
+    const limit = Math.min(Math.max(Number(body.limit ?? 10), 1), 10);
 
     const { data: rows, error } = await admin
       .from("provider_events")
       .select("source,provider_event_id,title,data")
       .is("embedding", null)
+      .is("embedded_at", null)
       .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
       .limit(limit);
@@ -22,6 +23,7 @@ Deno.serve(async (req: Request) => {
 
     const model = new Supabase.ai.Session("gte-small");
     let embedded = 0;
+    let skipped = 0;
 
     for (const row of rows ?? []) {
       const event = row.data ?? {};
@@ -35,7 +37,16 @@ Deno.serve(async (req: Request) => {
         ...tags,
       ].filter(Boolean).join(" ").replace(/\s+/g, " ").slice(0, 2000);
 
-      if (!text) continue;
+      if (!text) {
+        const { error: skipError } = await admin
+          .from("provider_events")
+          .update({ embedded_at: new Date().toISOString() })
+          .eq("source", row.source)
+          .eq("provider_event_id", row.provider_event_id);
+        if (skipError) throw skipError;
+        skipped++;
+        continue;
+      }
 
       const embedding = await model.run(text, { mean_pool: true, normalize: true });
       const { error: updateError } = await admin
@@ -47,7 +58,7 @@ Deno.serve(async (req: Request) => {
       embedded++;
     }
 
-    return Response.json({ scanned: rows?.length ?? 0, embedded });
+    return Response.json({ scanned: rows?.length ?? 0, embedded, skipped });
   } catch (error) {
     console.error(error);
     return Response.json(
