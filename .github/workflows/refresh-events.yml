@@ -1,0 +1,41 @@
+name: Refresh event providers
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "latest"
+
+      - name: Install backend
+        working-directory: backend
+        run: uv sync
+
+      - name: Collect provider snapshot
+        working-directory: backend
+        run: uv run python -m app.scripts.seed_events collect --output /tmp/build-dallas-events.json
+
+      - name: Import into Supabase
+        working-directory: backend
+        run: uv run python -m app.scripts.supabase_import --input /tmp/build-dallas-events.json
+
+      - name: Re-embed changed events
+        run: |
+          curl --fail-with-body --request POST \
+            "${SUPABASE_URL}/functions/v1/embed-provider-events" \
+            --header "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            --header "Content-Type: application/json" \
+            --data '{"limit":100}'
